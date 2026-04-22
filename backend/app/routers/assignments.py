@@ -43,3 +43,8 @@ def return_assignment(assignment_id: str, payload: AssignmentReturn, db: Session
     db.commit()
     db.refresh(assignment)
     return assignment
+
+
+@router.get("", response_model=list[AssignmentOut])
+def list_assignments(db: Session = Depends(get_db)):
+    return db.query(Assignment).order_by(Assignment.created_at.desc()).all()

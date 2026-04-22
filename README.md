@@ -1,11 +1,13 @@
-# IT Envanter, Zimmet ve Arıza Takip MVP
+# IT Envanter, Zimmet ve Arıza Takip Web App (MVP)
 
-Bu depo, istenen MVP kapsamı için çalışır bir backend iskeleti içerir:
+Bu proje artık masaüstü EXE yerine **web uygulaması** olarak çalışır.
+
+## İçerik
 
 - Envanter ve stok yönetimi (`assets`)
 - Zimmet logları (`assignments`)
 - Arıza/bakım ticket akışı (`tickets` + `ticket_events`)
-- Kullanıcı yönetimi (`users`)
+- Tek sayfa dark-mode web arayüzü (`/`)
 
 ## Teknoloji
 
@@ -13,7 +15,7 @@ Bu depo, istenen MVP kapsamı için çalışır bir backend iskeleti içerir:
 - PostgreSQL (SQLAlchemy üzerinden)
 - Pydantic doğrulama
 
-## Hızlı Başlangıç
+## Çalıştırma
 
 ```bash
 cd backend
@@ -24,13 +26,17 @@ export DATABASE_URL='postgresql+psycopg://postgres:postgres@localhost:5432/it_in
 uvicorn app.main:app --reload
 ```
 
-Swagger: `http://127.0.0.1:8000/docs`
+## Ekranlar
+
+- Web app ana ekranı: `http://127.0.0.1:8000/`
+- Swagger: `http://127.0.0.1:8000/docs`
+- Health: `http://127.0.0.1:8000/health`
 
 ## API Özeti
 
 - `POST /users`, `GET /users`
 - `POST /assets`, `GET /assets`
-- `POST /assignments`, `POST /assignments/{assignment_id}/return`
+- `POST /assignments`, `GET /assignments`, `POST /assignments/{assignment_id}/return`
 - `POST /tickets`, `POST /tickets/{ticket_id}/status`, `GET /tickets`
 
 ## Tasarım Notları
@@ -41,25 +47,3 @@ Swagger: `http://127.0.0.1:8000/docs`
   - Zimmet iadesinde -> `in_stock`
 - Ticket olayları `ticket_events` tablosunda tutulur.
 - MVP’de `create_all` kullanılmıştır; üretim için Alembic migration önerilir.
-
-## Masaüstü EXE (Windows)
-
-"Normal exe" kullanım için `desktop_launcher.py` eklendi. Bu arayüz backend'i başlatıp/durdurur ve Swagger sayfasını açar.
-
-### Geliştirme ortamında çalıştırma
-
-```bash
-python desktop_launcher.py
-```
-
-### EXE üretme
-
-Windows üzerinde:
-
-```bat
-build_exe.bat
-```
-
-Bu komut sonunda `dist/ITEnvanterDesktop.exe` oluşur.
-
-> Not: EXE çalışırken `backend` klasörü aynı dizinde olmalıdır (launcher bu klasörden API'yi başlatır).
