@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT Donanım ve Envanter Yönetim Sistemi</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">⚙</div>
+      <div>
+        <h1>IT ASSET</h1>
+        <p>MANAGEMENT SYSTEM</p>
+      </div>
+    </div>
+    <nav id="nav"></nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <h2 id="pageTitle">Dashboard</h2>
+      <button class="btn primary" id="topAction" hidden></button>
+    </header>
+
+    <section id="dashboard" class="page active"></section>
+    <section id="inventory" class="page"></section>
+    <section id="assignments" class="page"></section>
+    <section id="tickets" class="page"></section>
+    <section id="audit" class="page"></section>
+  </main>
+
+  <dialog id="modal">
+    <form method="dialog" class="modal-head">
+      <h3 id="modalTitle"></h3>
+      <button class="btn ghost">✕</button>
+    </form>
+    <div id="modalBody"></div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
