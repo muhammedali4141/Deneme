@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT Envanter Web Uygulaması</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --green: #39ff14;
+      --red: #ff3b3b;
+      --blue: #00d1ff;
+      --orange: #ffc857;
+    }
+    body { margin:0; font-family: Inter, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    .grid { display:grid; gap:12px; }
+    .stats { grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); margin-bottom:16px; }
+    .card { background:var(--panel); border:1px solid #1f2937; border-radius:12px; padding:14px; }
+    .label { color:var(--muted); font-size:12px; }
+    .value { font-size:22px; font-weight:700; margin-top:4px; }
+    .row { display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(330px,1fr)); }
+    h1,h2 { margin:0 0 12px; }
+    input,select,button { width:100%; padding:10px; border-radius:8px; border:1px solid #374151; background:#0f172a; color:var(--text); }
+    button { background:#1f2937; cursor:pointer; }
+    button:hover { background:#374151; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .full { grid-column: 1 / -1; }
+    table { width:100%; border-collapse: collapse; font-size:13px; }
+    th, td { padding:8px; border-bottom:1px solid #1f2937; text-align:left; }
+    .status { padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; }
+    .in_stock { color:var(--green); border:1px solid var(--green); }
+    .assigned { color:var(--blue); border:1px solid var(--blue); }
+    .faulty { color:var(--red); border:1px solid var(--red); }
+    .in_service { color:var(--orange); border:1px solid var(--orange); }
+    .log { color:var(--muted); font-size:12px; margin-top:8px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>IT Envanter & Ticketing (Web App)</h1>
+
+  <div class="grid stats">
+    <div class="card"><div class="label">Toplam Cihaz</div><div id="stat-assets" class="value">0</div></div>
+    <div class="card"><div class="label">Stokta</div><div id="stat-stock" class="value">0</div></div>
+    <div class="card"><div class="label">Zimmette</div><div id="stat-assigned" class="value">0</div></div>
+    <div class="card"><div class="label">Açık Ticket</div><div id="stat-open" class="value">0</div></div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>Kullanıcı Ekle</h2>
+      <form id="user-form" class="form-grid">
+        <input name="full_name" placeholder="Ad Soyad" required />
+        <input name="email" placeholder="E-posta" required />
+        <select name="role" class="full"><option value="viewer">viewer</option><option value="it_staff">it_staff</option><option value="admin">admin</option></select>
+        <button class="full" type="submit">Kaydet</button>
+      </form>
+      <div class="log" id="user-log"></div>
+    </div>
+
+    <div class="card">
+      <h2>Cihaz Ekle</h2>
+      <form id="asset-form" class="form-grid">
+        <input name="category" placeholder="Kategori" required />
+        <input name="brand" placeholder="Marka" required />
+        <input name="model" placeholder="Model" required />
+        <input name="serial_number" placeholder="Seri No" required />
+        <input class="full" name="location" placeholder="Lokasyon" value="main_warehouse" required />
+        <button class="full" type="submit">Kaydet</button>
+      </form>
+      <div class="log" id="asset-log"></div>
+    </div>
+
+    <div class="card">
+      <h2>Zimmet Oluştur</h2>
+      <form id="assign-form" class="form-grid">
+        <input name="asset_id" placeholder="Asset ID" required />
+        <input name="user_id" placeholder="User ID" required />
+        <input name="assigned_date" type="date" required />
+        <input name="delivered_by" placeholder="Teslim Eden" required />
+        <input name="received_by" placeholder="Teslim Alan" required />
+        <input class="full" name="notes" placeholder="Not" />
+        <button class="full" type="submit">Zimmetle</button>
+      </form>
+      <div class="log" id="assign-log"></div>
+    </div>
+
+    <div class="card">
+      <h2>Ticket Aç</h2>
+      <form id="ticket-form" class="form-grid">
+        <input name="ticket_no" placeholder="TCK-2026-0001" required />
+        <input name="asset_id" placeholder="Asset ID" required />
+        <select name="priority"><option value="low">low</option><option value="medium" selected>medium</option><option value="high">high</option><option value="critical">critical</option></select>
+        <input name="issue_description" class="full" placeholder="Sorun tanımı" required />
+        <button class="full" type="submit">Ticket Aç</button>
+      </form>
+      <div class="log" id="ticket-log"></div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:12px;">
+    <div class="card">
+      <h2>Son Cihazlar</h2>
+      <table><thead><tr><th>Seri No</th><th>Kategori</th><th>Durum</th></tr></thead><tbody id="assets-body"></tbody></table>
+    </div>
+    <div class="card">
+      <h2>Son Ticketlar</h2>
+      <table><thead><tr><th>No</th><th>Öncelik</th><th>Durum</th></tr></thead><tbody id="tickets-body"></tbody></table>
+    </div>
+  </div>
+</div>
+<script>
+async function api(path, options={}) {
+  const res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options });
+  if (!res.ok) throw new Error(await res.text());
+  return res.status === 204 ? null : res.json();
+}
+
+function formDataObj(form) { return Object.fromEntries(new FormData(form).entries()); }
+
+function setLog(id, msg, isErr=false) {
+  const el = document.getElementById(id);
+  el.style.color = isErr ? '#ff3b3b' : '#39ff14';
+  el.textContent = msg;
+}
+
+async function refresh() {
+  const [assets, tickets] = await Promise.all([api('/assets'), api('/tickets')]);
+  document.getElementById('stat-assets').textContent = assets.length;
+  document.getElementById('stat-stock').textContent = assets.filter(a => a.status === 'in_stock').length;
+  document.getElementById('stat-assigned').textContent = assets.filter(a => a.status === 'assigned').length;
+  document.getElementById('stat-open').textContent = tickets.filter(t => ['open','in_progress','in_service'].includes(t.status)).length;
+
+  document.getElementById('assets-body').innerHTML = assets.slice(0,10).map(a =>
+    `<tr><td>${a.serial_number}</td><td>${a.category}</td><td><span class="status ${a.status}">${a.status}</span></td></tr>`).join('');
+
+  document.getElementById('tickets-body').innerHTML = tickets.slice(0,10).map(t =>
+    `<tr><td>${t.ticket_no}</td><td>${t.priority}</td><td>${t.status}</td></tr>`).join('');
+}
+
+const handlers = [
+  ['user-form','/users','user-log'],
+  ['asset-form','/assets','asset-log'],
+  ['assign-form','/assignments','assign-log'],
+  ['ticket-form','/tickets','ticket-log'],
+];
+handlers.forEach(([formId, path, logId]) => {
+  document.getElementById(formId).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const payload = formDataObj(e.target);
+      await api(path, { method: 'POST', body: JSON.stringify(payload) });
+      setLog(logId, 'Kayıt başarılı');
+      e.target.reset();
+      await refresh();
+    } catch (err) {
+      setLog(logId, err.message, true);
+    }
+  });
+});
+
+refresh().catch(err => console.error(err));
+</script>
+</body>
+</html>
